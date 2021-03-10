@@ -1,21 +1,7 @@
-import plotly.graph_objects as go
-import plotly.io as pio
-import plotly as plt
-import dash
-import dash_core_components as dcc
-import dash_html_components as html
-from dash.dependencies import Input, Output
-import dash_bootstrap_components as dbc
-from app import app
 from datetime import datetime
 import chess.pgn
-from tqdm import tqdm
-import seaborn as sns
 import numpy as np
-sns.set(style="white")
 from collections import Counter
-import plotly.express as px
-from apps import match
 import pandas as pd
 
 class Match:

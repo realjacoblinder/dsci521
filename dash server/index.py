@@ -3,18 +3,16 @@ import dash_html_components as html
 from dash.dependencies import Input, Output, State
 import dash_bootstrap_components as dbc
 
-# must add this line in order for the app to be deployed successfully on Heroku
-from app import server
 from app import app
 # import all pages in the app
-from apps import global_situation, home
+from apps import pieces, players, home
 
 # building the navigation bar
 dropdown = dbc.DropdownMenu(
     children=[
         dbc.DropdownMenuItem("Home", href="/home"),
-        dbc.DropdownMenuItem("Global", href="/global_situation"),
-        dbc.DropdownMenuItem("Singapore", href="/singapore"),
+        dbc.DropdownMenuItem("Pieces", href="/pieces"),
+        dbc.DropdownMenuItem("Players", href="/players"),
     	],
     nav = True,
     in_navbar = True,
@@ -75,10 +73,10 @@ app.layout = html.Div([
 @app.callback(Output('page-content', 'children'),
               [Input('url', 'pathname')])
 def display_page(pathname):
-    if pathname == '/global_situation':
-        return global_situation.layout
-    elif pathname == '/singapore':
-        return singapore.layout
+    if pathname == '/pieces':
+        return pieces.layout
+    elif pathname == '/players':
+        return players.layout
     else:
         return home.layout
 
