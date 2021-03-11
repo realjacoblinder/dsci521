@@ -55,38 +55,6 @@ new_df = captures_df[['piece_type', 'captured_piece_type']].drop_duplicates()
 
 new_df['capture_count'] = new_df.apply(lambda x: sum(captures_df[(captures_df['piece_type'] == x['piece_type']) & (captures_df['captured_piece_type'] == x['captured_piece_type'])]['game_id']), axis=1)
 new_df['color'] = new_df['piece_type'].apply(lambda x: 'white' if ord(x) >= 9812 or ord(x) <= 9817 else 'black')
-
-openings_dict = {'white first move':[], 'white second move':[], 'black first move':[], 'black second move':[], 'winner':[], 'game_id':[]}
-for game in games.values():
-    move_counter = 0
-    moves = []
-    for move in game.mainline_moves:
-        moves.append(str(move))
-        if move_counter == 3:
-            break
-        move_counter += 1
-    if len(moves) == 4:
-        openings_dict['white first move'].append(moves[0])
-        openings_dict['black first move'].append(moves[1])
-        openings_dict['white second move'].append(moves[2])
-        openings_dict['black second move'].append(moves[3])
-        openings_dict['winner'].append(game.winner)
-        openings_dict['game_id'].append(game.game_id)
-four_moves = pd.DataFrame(openings_dict)
-
-whitefirstdict = []
-
-blackfirstdict = []
-whiteseconddict = []
-
-#******************************************************************************************************************
-#Graphzone
-    
-    
-#******************************************************************************************************************
-#panic
-for i in four_moves['white first move'].unique():
-        whitefirstdict.append({'label': i, 'value': i})
     
 #Page header
 #******************************************************************************************************************

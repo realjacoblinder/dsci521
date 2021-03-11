@@ -1,4 +1,5 @@
 import plotly.express as px
+import plotly.graph_objects as go
 import pandas as pd
 
 def checkmates(df, min_elo, max_elo):
@@ -71,30 +72,54 @@ def openings_by_elo(data, games, eco='All', min_elo=1000, max_elo=1500):
         obe = obe[obe['open'] == eco]
         return px.pie(obe[(obe['mean_elo'] > min_elo) & (obe['mean_elo'] < max_elo)], 'eco')
 
+def four_moves_helper(data):
+    fig = go.Figure(data = [
+        go.Bar(name = 'White', x=data[data.columns[0]], y=data['white'], text=data['white'], textposition='auto', hovertemplate="White wins: %{y}"),
+        go.Bar(name = 'Black', x=data[data.columns[0]], y=data['black'], text=data['black'], textposition='auto', hovertemplate="Black wins: %{y}"),
+        go.Bar(name = 'Tie', x=data[data.columns[0]], y=data['tie'], text=data['tie'], textposition='auto', hovertemplate="Tie games: %{y}")
+    ])
+    fig.update_layout(barmode='stack', xaxis={'categoryorder':'total descending'})
+    return fig
+
 def first_four_moves(four_moves, white_first = None, black_first = None, white_second = None):
-	## need to have 
-    c='winner'
-    
+    four_moves = four_moves.copy()
     if white_first == None:
-        return px.bar(four_moves, 'white first move', color=c).update_traces(hovertemplate=None, hoverinfo='skip')
+        four_moves = four_moves[['white first move', 'white', 'black', 'tie']]
+        four_moves['white'] = four_moves.groupby('white first move')['white'].transform('sum')
+        four_moves['black'] = four_moves.groupby('white first move')['black'].transform('sum')
+        four_moves['tie'] = four_moves.groupby('white first move')['tie'].transform('sum')
+        four_moves.drop_duplicates(inplace=True)
+        fig = four_moves_helper(four_moves)
+        return fig
     
     if black_first == None:
-        four_moves = four_moves[four_moves['white first move'] == white_first]
-        if four_moves.empty:
-            c=None
-        return px.bar(four_moves, 'black first move', color=c).update_traces(hovertemplate=None, hoverinfo='skip')
+        four_moves = four_moves[four_moves['white first move'] == white_first][['black first move', 'white', 'black', 'tie']]
+        four_moves['white'] = four_moves.groupby('black first move')['white'].transform('sum')
+        four_moves['black'] = four_moves.groupby('black first move')['black'].transform('sum')
+        four_moves['tie'] = four_moves.groupby('black first move')['tie'].transform('sum')
+        four_moves.drop_duplicates(inplace=True)
+        fig = four_moves_helper(four_moves)
+        return fig
     
     if white_second == None:
         four_moves = four_moves[(four_moves['white first move'] == white_first) & (four_moves['black first move'] == black_first)]
-        if four_moves.empty:
-            c=None
-        return px.bar(four_moves, 'white second move', color=c).update_traces(hovertemplate=None, hoverinfo='skip')
+        four_moves = four_moves[['white second move', 'white', 'black', 'tie']]
+        four_moves['white'] = four_moves.groupby('white second move')['white'].transform('sum')
+        four_moves['black'] = four_moves.groupby('white second move')['black'].transform('sum')
+        four_moves['tie'] = four_moves.groupby('white second move')['tie'].transform('sum')
+        four_moves.drop_duplicates(inplace=True)
+        fig = four_moves_helper(four_moves)
+        return fig
     
     else:
         four_moves = four_moves[(four_moves['white first move'] == white_first) & (four_moves['black first move'] == black_first) & (four_moves['white second move'] == white_second)]
-        if four_moves.empty:
-            c=None
-        return px.bar(four_moves, 'black second move', color=c).update_traces(hovertemplate=None, hoverinfo='skip')
+        four_moves = four_moves[['black second move', 'white', 'black', 'tie']]
+        four_moves['white'] = four_moves.groupby('black second move')['white'].transform('sum')
+        four_moves['black'] = four_moves.groupby('black second move')['black'].transform('sum')
+        four_moves['tie'] = four_moves.groupby('black second move')['tie'].transform('sum')
+        four_moves.drop_duplicates(inplace=True)
+        fig = four_moves_helper(four_moves)
+        return fig
 
 def pieces_captured(df):
     return px.bar(df, x='piece_type', y='capture_count', color='captured_piece_type')
