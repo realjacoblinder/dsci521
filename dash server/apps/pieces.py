@@ -99,17 +99,16 @@ layout = html.Div([
         ),
 
     dbc.Row([
-        dbc.Col(dbc.Card(html.H3(children='Overall piece capture rates, normalized by piece type count',
+        dbc.Col(dbc.Card(html.H3(children='Overall piece capture rates',
                                  className="text-center text-light bg-dark"), body=True, color="dark")
         , className="mb-4")
         ]),
-
+    dcc.Graph(id='pieces_captured'),
     dbc.Row([
         dbc.Col(html.H5(children='Pieces are normalized by piece count. For example, the number for pawns was divided by 8, while rooks were divided by two.', className="text-center"),
                 className="mt-4"),
     ]),
-
-    dcc.Graph(id='pieces_captured'),
+    dcc.Graph(id='moves_per_piece')
 
 ]) # container
 
@@ -118,7 +117,8 @@ layout = html.Div([
 
 # page callbacks
 @app.callback([Output('pieces_captured', 'figure'),
-               Output('captures_by_piece', 'figure')],
+               Output('captures_by_piece', 'figure'),
+               Output('moves_per_piece', 'figure')],
               [Input('my-range-slider', 'value')])
 
 def update_graph(slider_range):
@@ -131,5 +131,7 @@ def update_graph(slider_range):
     fig2 = go.Figure()
     fig2 = px.histogram(data_frame=graphs.checkmates(data, elo_min, elo_max), x='Checkmate')
     fig2.update_layout(paper_bgcolor = 'rgba(0,0,0,0)', plot_bgcolor = 'rgba(0,0,0,0)', template = new_template, margin = dict(t=0))
+
+    fig3 = graphs.moves_per_piece(data, elo_min, elo_max)
     
-    return fig, fig2
+    return fig, fig2, fig3
