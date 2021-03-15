@@ -72,13 +72,9 @@ layout = html.Div([
 #Block headers
 #******************************************************************************************************************        
     dbc.Row([
-        dbc.Col(dbc.Card(html.H3(children='Winning checkmate takes by piece, contrained by ELO',
+        dbc.Col(dbc.Card(html.H3(children='Set the desired ELO rating range for the following graphs',
                                  className="text-center text-white bg-dark"), body=True, color="dark")
         , className="mt-4 mb-4")
-    ]),
-        
-    dbc.Row([
-        dbc.Col(dcc.Graph(id='captures_by_piece'), width=12)
     ]),
     dcc.RangeSlider(
         id='my-range-slider',
@@ -97,6 +93,16 @@ layout = html.Div([
         },
         value=[1300, 1700]
         ),
+    
+    dbc.Row([
+        dbc.Col(dbc.Card(html.H3(children='Winning checkmate takes by piece, contrained by ELO',
+                                 className="text-center text-white bg-dark"), body=True, color="dark")
+        , className="mt-4 mb-4")
+    ]),
+        
+    dbc.Row([
+        dbc.Col(dcc.Graph(id='captures_by_piece'), width=12)
+    ]),
 
     dbc.Row([
         dbc.Col(dbc.Card(html.H3(children='Overall piece capture rates',
@@ -105,10 +111,25 @@ layout = html.Div([
         ]),
     dcc.Graph(id='pieces_captured'),
     dbc.Row([
+        dbc.Col(dbc.Card(html.H3(children='Moves per piece',
+                                 className="text-center text-light bg-dark"), body=True, color="dark")
+        , className="mb-4")
+        ]),
+    dbc.Row([
         dbc.Col(html.H5(children='Pieces are normalized by piece count. For example, the number for pawns was divided by 8, while rooks were divided by two.', className="text-center"),
                 className="mt-4"),
     ]),
-    dcc.Graph(id='moves_per_piece')
+    dcc.Graph(id='moves_per_piece'),
+    dbc.Row([
+        dbc.Col(dbc.Card(html.H3(children='Board Heatmap',
+                                 className="text-center text-light bg-dark"), body=True, color="dark")
+        , className="mb-4")
+        ]),
+    dbc.Row([
+        dbc.Col(html.H5(children='Heatmap of the most popular squares on the board. Starting positions were not counted towards this calculation.', className="text-center"),
+                className="mt-4"),
+    ]),
+    dcc.Graph(id='piece heatmap')
 
 ]) # container
 
@@ -118,7 +139,8 @@ layout = html.Div([
 # page callbacks
 @app.callback([Output('pieces_captured', 'figure'),
                Output('captures_by_piece', 'figure'),
-               Output('moves_per_piece', 'figure')],
+               Output('moves_per_piece', 'figure'),
+               Output('piece heatmap', 'figure')],
               [Input('my-range-slider', 'value')])
 
 def update_graph(slider_range):
@@ -126,12 +148,14 @@ def update_graph(slider_range):
     
     #Pieces captured
     fig = graphs.pieces_captured(new_df)
-    
+    fig.update_layout(paper_bgcolor = 'rgba(0,0,0,0)', plot_bgcolor = 'rgba(0,0,0,0)', template = new_template, margin = dict(t=0))
     #Mating pieces
-    fig2 = go.Figure()
     fig2 = px.histogram(data_frame=graphs.checkmates(data, elo_min, elo_max), x='Checkmate')
-    fig2.update_layout(paper_bgcolor = 'rgba(0,0,0,0)', plot_bgcolor = 'rgba(0,0,0,0)', template = new_template, margin = dict(t=0))
+    fig2.update_layout(paper_bgcolor = 'rgba(0,0,0,0)', plot_bgcolor = 'rgba(0,0,0,0)', template = new_template, margin = dict(t=0), xaxis={'categoryorder' : 'array', 'categoryarray':['Queen', 'Rook', 'Pawn', 'Knight','Bishop']})
 
     fig3 = graphs.moves_per_piece(data, elo_min, elo_max)
+    fig3.update_layout(paper_bgcolor = 'rgba(0,0,0,0)', plot_bgcolor = 'rgba(0,0,0,0)', template = new_template, margin = dict(t=0))
+    fig4 = graphs.board_heatmap(data, elo_min, elo_max)
+    fig4.update_layout(paper_bgcolor = 'rgba(0,0,0,0)', plot_bgcolor = 'rgba(0,0,0,0)', template = new_template, margin = dict(t=0))
     
-    return fig, fig2, fig3
+    return fig, fig2, fig3, fig4

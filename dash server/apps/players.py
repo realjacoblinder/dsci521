@@ -280,5 +280,9 @@ def update_graph(ECO, color, slider_range1, whitefirst, blackfirst, whitesecond,
         whitefirsty.append({'label': i, 'value': i})
     
     fig5 = graphs.first_four_moves(four_moves, whitefirst, blackfirst, whitesecond)
+    fig5.update_layout(paper_bgcolor='rgba(0,0,0,0)',
+                       plot_bgcolor='rgba(0,0,0,0)',
+                       template = new_template,
+                       margin=dict(t=0))
     
     return fig4, fig3, fig5, blackfirsty, whitefirsty

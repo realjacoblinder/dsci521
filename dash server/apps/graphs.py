@@ -22,7 +22,7 @@ def decolorizer(piece):
     if piece in ['♗', '♝']:
         return 'Bishop'
 
-def white_black_rating_diff(data, games, color, trendline='lowess', min_elo=0, max_elo=5000):
+def white_black_rating_diff(data, games, color, trendline='ols', min_elo=0, max_elo=5000):
     rating_diff_win_rate = data[['game_id']].copy()
     rating_diff_win_rate['white elo'] = rating_diff_win_rate['game_id'].apply(lambda x: int(games[x].white_elo) if games[x].white_elo != '?' else '?')
     rating_diff_win_rate['black elo'] = rating_diff_win_rate['game_id'].apply(lambda x: int(games[x].black_elo) if games[x].black_elo != '?' else '?')
@@ -39,7 +39,7 @@ def white_black_rating_diff(data, games, color, trendline='lowess', min_elo=0, m
     c = 'winner'
     if rating_diff_win_rate.empty:
         c=None
-    return px.scatter(rating_diff_win_rate, col, 'white-black diff', color=c, trendline=trendline, hover_data=['black elo'])
+    return px.scatter(rating_diff_win_rate, col, 'white-black diff', color=c, trendline=trendline, hover_data=['black elo'], labels={"white elo": "White Rating", "black elo" : "Black Rating", "white-black diff" : "Rating Differential", "winner" : "Winner"})
 
 def moves_per_piece(data, min_elo=1000, max_elo=1500):
     def piece_normalizer(row):
@@ -57,7 +57,7 @@ def moves_per_piece(data, min_elo=1000, max_elo=1500):
     mpr = mpr[(mpr['mean_elo'] > min_elo) & (mpr['mean_elo'] < max_elo)].groupby('piece').sum().reset_index()
     mpr['normalized_moves'] = mpr.apply(piece_normalizer, axis=1)
     mpr['normalized_moves'] = mpr['normalized_moves']/mpr['normalized_moves'].sum()*100
-    return px.bar(data_frame=mpr, x='piece', y='normalized_moves')
+    return px.bar(data_frame=mpr, x='piece', y='normalized_moves', labels={"piece": "Piece", "normalized_moves" : "Normalized Move Count"})
 
 def openings_by_elo(data, games, eco='All', min_elo=1000, max_elo=1500):
     obe = data[['game_id', 'mean_elo']].copy()
@@ -77,8 +77,8 @@ def four_moves_helper(data):
         go.Bar(name = 'White', x=data[data.columns[0]], y=data['white'], text=data['white'], textposition='auto', hovertemplate="White wins: %{y}"),
         go.Bar(name = 'Black', x=data[data.columns[0]], y=data['black'], text=data['black'], textposition='auto', hovertemplate="Black wins: %{y}"),
         go.Bar(name = 'Tie', x=data[data.columns[0]], y=data['tie'], text=data['tie'], textposition='auto', hovertemplate="Tie games: %{y}")
-    ])
-    fig.update_layout(barmode='stack', xaxis={'categoryorder':'total descending'})
+    ], )
+    fig.update_layout(barmode='stack', xaxis={'categoryorder':'total descending'}, yaxis_title='Count')
     return fig
 
 def first_four_moves(four_moves, white_first = None, black_first = None, white_second = None):
@@ -89,7 +89,7 @@ def first_four_moves(four_moves, white_first = None, black_first = None, white_s
         four_moves['black'] = four_moves.groupby('white first move')['black'].transform('sum')
         four_moves['tie'] = four_moves.groupby('white first move')['tie'].transform('sum')
         four_moves.drop_duplicates(inplace=True)
-        fig = four_moves_helper(four_moves)
+        fig = four_moves_helper(four_moves).update_layout(xaxis_title='White First Move')
         return fig
     
     if black_first == None:
@@ -98,7 +98,7 @@ def first_four_moves(four_moves, white_first = None, black_first = None, white_s
         four_moves['black'] = four_moves.groupby('black first move')['black'].transform('sum')
         four_moves['tie'] = four_moves.groupby('black first move')['tie'].transform('sum')
         four_moves.drop_duplicates(inplace=True)
-        fig = four_moves_helper(four_moves)
+        fig = four_moves_helper(four_moves).update_layout(xaxis_title='Black First Move')
         return fig
     
     if white_second == None:
@@ -108,7 +108,7 @@ def first_four_moves(four_moves, white_first = None, black_first = None, white_s
         four_moves['black'] = four_moves.groupby('white second move')['black'].transform('sum')
         four_moves['tie'] = four_moves.groupby('white second move')['tie'].transform('sum')
         four_moves.drop_duplicates(inplace=True)
-        fig = four_moves_helper(four_moves)
+        fig = four_moves_helper(four_moves).update_layout(xaxis_title='White Second Move')
         return fig
     
     else:
@@ -118,8 +118,32 @@ def first_four_moves(four_moves, white_first = None, black_first = None, white_s
         four_moves['black'] = four_moves.groupby('black second move')['black'].transform('sum')
         four_moves['tie'] = four_moves.groupby('black second move')['tie'].transform('sum')
         four_moves.drop_duplicates(inplace=True)
-        fig = four_moves_helper(four_moves)
+        fig = four_moves_helper(four_moves).update_layout(xaxis_title='Black Second Move')
         return fig
 
 def pieces_captured(df):
-    return px.bar(df, x='piece_type', y='capture_count', color='captured_piece_type')
+    return px.bar(df, x='piece_type', y='capture_count', color='captured_piece_type', labels={"piece_type": "Capturing Piece", "capture_count" : "Number of Pieces Captured", "captured_piece_type" : "Captured Piece Type"})
+
+
+def row_col(square):
+    row = square//8
+    col = square % 8
+    return row,col
+def board_heatmap(data, min_elo, max_elo):
+    data = data[(data['mean_elo'] >= min_elo) & (data['mean_elo'] <= max_elo)]
+    board = [
+    [0]*8,
+    [0]*8,
+    [0]*8,
+    [0]*8,
+    [0]*8,
+    [0]*8,
+    [0]*8,
+    [0]*8]
+    for item in data['moves'].values:
+        for square in item:
+            row,col = row_col(square)
+            board[row][col] += 1
+    board.reverse()
+    fig = px.imshow(board, labels=dict(x="Column", y="Row", color="Frequency"), x=['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'], y=['8','7','6','5','4','3','2','1'])
+    return fig

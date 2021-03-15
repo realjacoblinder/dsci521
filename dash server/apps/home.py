@@ -44,24 +44,8 @@ layout = html.Div([
                                                   className="mt-3"),
                                        ],
                              body=True, color="dark", outline=True)
-                    , width=4, className="mb-4"),
-
-            dbc.Col(dbc.Card(children=[html.H3(children='Read the Medium article detailing the process',
-                                               className="text-center"),
-                                       dbc.Button("Medium",
-                                                  href="https://medium.com/@meredithwan",
-                                                  color="primary",
-                                                  className="mt-3"),
-
-                                       ],
-                             body=True, color="dark", outline=True)
                     , width=4, className="mb-4")
-        ], className="mb-5"),
-
     ])
 
 ])
-
-# needed only if running this as a single page app
-# if __name__ == '__main__':
-#     app.run_server(host='127.0.0.1', debug=True)
+])
