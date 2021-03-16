@@ -26,7 +26,7 @@ new_template['layout']['scene']['yaxis']['gridcolor'] = '#222222'
 # preparing various dataframes for visualisation
     
 games = {}
-limit = 1000 # for testing
+limit = 10000 # for testing
 with open('./apps/data/lichess_db_standard_rated_2013-02.pgn', 'r') as pgn_file:
     game = chess.pgn.read_game(pgn_file)
     L = 0
